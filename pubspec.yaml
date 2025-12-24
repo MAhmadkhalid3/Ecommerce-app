@@ -1,0 +1,86 @@
+name: ecommerce
+description: "A new Flutter project."
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+environment:
+  sdk: ^3.5.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  # State Management
+  get: ^4.7.2
+  get_storage: ^2.1.1
+
+  # Utility Packages
+  http: ^1.3.0
+  intl: ^0.20.2
+  logger: ^2.5.0
+  url_launcher: ^6.3.1
+  flutter_native_splash: ^2.4.4
+  smooth_page_indicator: ^1.2.1
+  iconsax: ^0.0.8
+  badges: ^3.1.2
+  carousel_slider: ^5.0.0
+  font_awesome_flutter: ^10.9.1
+  readmore: ^3.0.0
+
+
+  firebase_core: any
+flutter_native_splash:
+  color: "#FFFFFF"
+  color_dark: "#1f333d"
+  image: assets/logos/t-store-splash-logo-black.png
+  image_dark: assets/logos/t-store-splash-logo-white.png
+
+  android_12:
+    color: "#FFFFFF"
+    color_dark: "#1f333d"
+    image: assets/logos/t-store-splash-logo-black.png
+    image_dark: assets/logos/t-store-splash-logo-white.png
+    web: false
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+
+flutter:
+
+  uses-material-design: true
+
+  # Assets
+  assets:
+    - assets/images/animations/
+    - assets/images/on_boarding_images/
+    - assets/images/banners/
+    - assets/fonts/
+    - assets/icons/
+    - assets/logos/
+    - assets/images/products/
+    - assets/images/on_boarding_images/sammy-line-searching.gif
+
+  # Fonts
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins-Italic.ttf
+          style: italic
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-MediumItalic.ttf
+          style: italic
+          weight: 500
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
