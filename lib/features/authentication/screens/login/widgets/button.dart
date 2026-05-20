@@ -1,3 +1,4 @@
+import 'package:ecommerce/features/authentication/controllers/login_controller.dart';
 import 'package:ecommerce/features/authentication/screens/sign_up/signup_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,18 +12,13 @@ class TButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+   final controller = Get.find<LoginController>();
     return Column(
       children: [
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () {
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const BottomNavigatorBar(),
-                  ));
-            },
+            onPressed: controller.emailAndPasswordSignIn,
             child: const Text("Login"),
           ),
         ),

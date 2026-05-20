@@ -1,26 +1,44 @@
 {
   "project_info": {
-    "project_number": "906944702240",
-    "project_id": "ecommerce-1be89",
-    "storage_bucket": "ecommerce-1be89.firebasestorage.app"
+    "project_number": "15229256915",
+    "project_id": "we-chat-2cea4",
+    "storage_bucket": "we-chat-2cea4.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:906944702240:android:643c9f3631887bca109945",
+        "mobilesdk_app_id": "1:15229256915:android:d96b2c2265ada2f0f18026",
         "android_client_info": {
           "package_name": "com.example.ecommerce"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "15229256915-ub1r54cqihnf3ftgv3ln5df60plem6tt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ecommerce",
+            "certificate_hash": "e399969844fe81f8b8cb04927fce54365fe72057"
+          }
+        },
+        {
+          "client_id": "15229256915-01sdgot2pclprbtg36620kqepqes0m1h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyDKnKVIwrgG-7IDHP_D2OWvw_Ahu-epyf8"
+          "current_key": "AIzaSyAzKIXst8WTNbB9L9kZ_rpBPaxmAYzJ_-Q"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "15229256915-01sdgot2pclprbtg36620kqepqes0m1h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

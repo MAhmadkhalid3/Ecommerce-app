@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../utils/constants/sizes.dart';
 import '../../../../utils/helpers/helper_functions.dart';
+import '../../controllers/forget_password_controller.dart';
+import '../login/login_screen.dart';
 
 class ResetScreen extends StatelessWidget {
   const ResetScreen({super.key});
@@ -48,14 +50,16 @@ class ResetScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Get.offAll(() => LoginScreen());
+                  },
                   child: const Text("Done"),
                 ),
               ),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {ForgetPasswordController.instance.resendPasswordResetEmail;},
                   child: const Text("Resend Email"),
                 ),
               ),

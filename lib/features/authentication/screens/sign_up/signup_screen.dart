@@ -17,7 +17,7 @@ class SignupScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     bool isDark = THelperFunction.isDrak(context);
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         automaticallyImplyLeading: true,
         iconTheme: IconThemeData(

@@ -1,4 +1,3 @@
-import 'package:ecommerce/features/authentication/controllers.onboarding/on_boardingController.dart';
 import 'package:ecommerce/features/authentication/screens/on_boarding/widgets/next_button.dart';
 import 'package:ecommerce/features/authentication/screens/on_boarding/widgets/on_boarding_skip.dart';
 import 'package:ecommerce/features/authentication/screens/on_boarding/widgets/onboarding_pages.dart';
@@ -7,6 +6,8 @@ import 'package:ecommerce/utils/constants/images_string.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../../utils/constants/text_string.dart';
+import '../../controllers/on_boarding_controller.dart';
+
 
 class OnBoarding extends StatelessWidget {
   OnBoarding({super.key});

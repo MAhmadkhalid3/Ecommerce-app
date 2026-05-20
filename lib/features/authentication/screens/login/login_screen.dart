@@ -1,3 +1,5 @@
+import 'package:ecommerce/features/authentication/controllers/google_sign_in_controller.dart';
+import 'package:ecommerce/features/authentication/controllers/login_controller.dart';
 import 'package:ecommerce/features/authentication/screens/login/widgets/button.dart';
 import 'package:ecommerce/features/authentication/screens/login/widgets/divider.dart';
 import 'package:ecommerce/features/authentication/screens/login/widgets/footer.dart';
@@ -6,6 +8,9 @@ import 'package:ecommerce/features/authentication/screens/login/widgets/haeder.d
 import 'package:ecommerce/utils/constants/sizes.dart';
 import 'package:ecommerce/utils/helpers/helper_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -41,6 +46,7 @@ class LoginScreen extends StatelessWidget {
               SizedBox(
                 height: TSizes.spaceBtwItems(context) * 1.5,
               ),
+
               const Footer()
             ],
           ),

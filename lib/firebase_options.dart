@@ -25,10 +25,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
         return windows;
       case TargetPlatform.linux:
@@ -44,39 +41,53 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyC9OoBYEir8Jk4QKBn8npJfiuzf4cAj03o',
-    appId: '1:906944702240:web:2128dbab935f84b9109945',
-    messagingSenderId: '906944702240',
-    projectId: 'ecommerce-1be89',
-    authDomain: 'ecommerce-1be89.firebaseapp.com',
-    storageBucket: 'ecommerce-1be89.firebasestorage.app',
-    measurementId: 'G-PFD3VM34J0',
+    apiKey: 'AIzaSyCoEZQgBFh59gJdfst51nBDATBGSzjOazM',
+    appId: '1:15229256915:web:9e7d8b5735510d83f18026',
+    messagingSenderId: '15229256915',
+    projectId: 'we-chat-2cea4',
+    authDomain: 'we-chat-2cea4.firebaseapp.com',
+    storageBucket: 'we-chat-2cea4.firebasestorage.app',
+    measurementId: 'G-DR9B6BRNWW',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDKnKVIwrgG-7IDHP_D2OWvw_Ahu-epyf8',
-    appId: '1:906944702240:android:643c9f3631887bca109945',
-    messagingSenderId: '906944702240',
-    projectId: 'ecommerce-1be89',
-    storageBucket: 'ecommerce-1be89.firebasestorage.app',
+    apiKey: 'AIzaSyAzKIXst8WTNbB9L9kZ_rpBPaxmAYzJ_-Q',
+    appId: '1:15229256915:android:d96b2c2265ada2f0f18026',
+    messagingSenderId: '15229256915',
+    projectId: 'we-chat-2cea4',
+    storageBucket: 'we-chat-2cea4.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDZpCCgKVZr70Itr3aM_MbuzSy5sMvINJM',
-    appId: '1:906944702240:ios:9f008fbb9b099337109945',
-    messagingSenderId: '906944702240',
-    projectId: 'ecommerce-1be89',
-    storageBucket: 'ecommerce-1be89.firebasestorage.app',
+    apiKey: 'AIzaSyDzRly7PnrYNq2nkwcz5UIZlKFGzuQGgyk',
+    appId: '1:15229256915:ios:af0d6ae730a248d3f18026',
+    messagingSenderId: '15229256915',
+    projectId: 'we-chat-2cea4',
+    storageBucket: 'we-chat-2cea4.firebasestorage.app',
+    androidClientId: '15229256915-ub1r54cqihnf3ftgv3ln5df60plem6tt.apps.googleusercontent.com',
+    iosClientId: '15229256915-9hopc3lu8e9vrfq3562ir16pi66arbl5.apps.googleusercontent.com',
     iosBundleId: 'com.example.ecommerce',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyC9OoBYEir8Jk4QKBn8npJfiuzf4cAj03o',
-    appId: '1:906944702240:web:e810a16f9a420f7e109945',
-    messagingSenderId: '906944702240',
-    projectId: 'ecommerce-1be89',
-    authDomain: 'ecommerce-1be89.firebaseapp.com',
-    storageBucket: 'ecommerce-1be89.firebasestorage.app',
-    measurementId: 'G-6GJ4NXDSWB',
+    apiKey: 'AIzaSyD55k6WahW03sa1CVG88em6NTuos-COtWY',
+    appId: '1:15229256915:web:310572374bc1a02ef18026',
+    messagingSenderId: '15229256915',
+    projectId: 'we-chat-2cea4',
+    authDomain: 'we-chat-2cea4.firebaseapp.com',
+    storageBucket: 'we-chat-2cea4.firebasestorage.app',
+    measurementId: 'G-3X29ZD8W7K',
   );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyDzRly7PnrYNq2nkwcz5UIZlKFGzuQGgyk',
+    appId: '1:15229256915:ios:af0d6ae730a248d3f18026',
+    messagingSenderId: '15229256915',
+    projectId: 'we-chat-2cea4',
+    storageBucket: 'we-chat-2cea4.firebasestorage.app',
+    androidClientId: '15229256915-ub1r54cqihnf3ftgv3ln5df60plem6tt.apps.googleusercontent.com',
+    iosClientId: '15229256915-9hopc3lu8e9vrfq3562ir16pi66arbl5.apps.googleusercontent.com',
+    iosBundleId: 'com.example.ecommerce',
+  );
+
 }

@@ -1,8 +1,10 @@
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../utils/constants/colors.dart';
 import '../../../../utils/helpers/helper_functions.dart';
+import '../../../../utils/popups/shmiled_loader.dart';
 
 class PriceWithDiscountTag extends StatelessWidget {
   const PriceWithDiscountTag({
@@ -91,13 +93,29 @@ class TRoundedImage extends StatelessWidget {
               ? BorderRadius.circular(borderRadius)
               : BorderRadius.zero,
           child: Padding(
-            padding:
-            const EdgeInsets.only(top: 5.0, left: 2, right: 2, bottom: 5),
-            child: Image(
+            padding: const EdgeInsets.only(
+              top: 5,
+              left: 2,
+              right: 2,
+              bottom: 5,
+            ),
+            child: isNetworkImage
+                ? CachedNetworkImage(
+              imageUrl: imageUrl,
               fit: fit,
-              image: isNetworkImage
-                  ? NetworkImage(imageUrl)
-                  : AssetImage(imageUrl) as ImageProvider,
+
+              placeholder: (context, url) => TShimmerEffect(
+                width: width ?? 50,
+                height: height ?? 50,
+                radius: borderRadius,
+              ),
+
+              errorWidget: (context, url, error) =>
+              const Icon(Icons.error),
+            )
+                : Image.asset(
+              imageUrl,
+              fit: fit,
             ),
           ),
         ),

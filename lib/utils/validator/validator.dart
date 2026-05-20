@@ -1,4 +1,11 @@
+
 class TValidator {
+  static String? validateEmptyText(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Email is required.';
+    }
+    return null;
+  }
   static String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Email is required.';
@@ -46,10 +53,10 @@ class TValidator {
       return 'Phone number is required.';
     }
 
-    // Regular expression for phone number validation (assuming a 10-digit US phone number format)
-    final phoneRegExp = RegExp(r'^\d{10}$');
+    // Pakistan phone number: starts with 03, total 11 digits
+    final phoneRegExp = RegExp(r'^03\d{9}$');
     if (!phoneRegExp.hasMatch(value)) {
-      return 'Invalid phone number format (10 digits required).';
+      return 'Invalid phone number format. It should start with 03 and be 11 digits long.';
     }
 
     return null;

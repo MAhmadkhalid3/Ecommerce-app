@@ -33,7 +33,7 @@ class Wishlist extends StatelessWidget {
               mainAxisExtent: 250,
             ),
             itemBuilder: (context, index) {
-              return TProductCardVertical(isdark: THelperFunction.isDrak(context));
+
             }),),
       ),
     );

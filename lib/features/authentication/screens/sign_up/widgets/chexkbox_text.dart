@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../../utils/constants/colors.dart';
+import '../../../controllers/signup_controller.dart';
 
 class checkbox_or_text extends StatelessWidget {
   const checkbox_or_text({
@@ -12,12 +14,15 @@ class checkbox_or_text extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+ final controller =  SignupController.instance;
     return Row(
       children: [
-        Checkbox(
-          value: true,
-          onChanged: (value) {},
-          visualDensity: const VisualDensity(horizontal: -4),
+        Obx(
+        ()=> Checkbox(
+            value: controller.ischeckbox.value,
+            onChanged: (value) {controller.ischeckbox.value=!controller.ischeckbox.value;},
+            visualDensity: const VisualDensity(horizontal: -4),
+          ),
         ),
         Text.rich(
           TextSpan(

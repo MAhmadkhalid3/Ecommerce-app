@@ -1,7 +1,9 @@
+import 'package:ecommerce/features/authentication/controllers/signup_controller.dart';
+import 'package:ecommerce/utils/validator/validator.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
-
+import 'package:iconsax/iconsax.dart'; 
 import '../../../../../utils/constants/sizes.dart';
+import 'package:get/get.dart';
 
 class forms_fields extends StatelessWidget {
   const forms_fields({
@@ -13,13 +15,15 @@ class forms_fields extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
+    final controller = Get.put(SignupController());
+    return Form(key: controller.signupFormkey,
         child: Column(
       children: [
         Row(
           children: [
             Expanded(
-                child: TextFormField(
+                child: TextFormField(controller: controller.firstName,
+              validator:(value)=> TValidator.validateEmptyText(value),
               decoration: InputDecoration(
                   prefixIcon: const Icon(Iconsax.user),
                   labelText: "First Name",
@@ -32,7 +36,8 @@ class forms_fields extends StatelessWidget {
               width: TSizes.spaceBtwInputFields(context) / 1.6,
             ),
             Expanded(
-                child: TextFormField(
+                child: TextFormField(controller: controller.lastName,
+                  validator:(value)=> TValidator.validateEmptyText(value),
               decoration: InputDecoration(
                   prefixIcon: const Icon(Iconsax.user),
                   labelText: "Last Name",
@@ -46,7 +51,8 @@ class forms_fields extends StatelessWidget {
         SizedBox(
           height: TSizes.spaceBtwInputFields(context),
         ),
-        TextFormField(
+        TextFormField(controller: controller.userName,
+          validator:(value)=> TValidator.validateEmptyText(value),
           decoration: const InputDecoration(
               prefixIcon: Icon(
                 Iconsax.user_edit,
@@ -56,7 +62,8 @@ class forms_fields extends StatelessWidget {
         SizedBox(
           height: TSizes.spaceBtwInputFields(context),
         ),
-        TextFormField(
+        TextFormField(controller: controller.email,
+          validator:(value)=> TValidator.validateEmail(value),
           decoration: const InputDecoration(
               prefixIcon: Icon(
                 Iconsax.direct,
@@ -66,7 +73,8 @@ class forms_fields extends StatelessWidget {
         SizedBox(
           height: TSizes.spaceBtwInputFields(context),
         ),
-        TextFormField(
+        TextFormField(controller: controller.phoneNumber,
+          validator:(value)=> TValidator.validatePhoneNumber(value),
           decoration: const InputDecoration(
               prefixIcon: Icon(
                 Iconsax.call,
@@ -76,13 +84,23 @@ class forms_fields extends StatelessWidget {
         SizedBox(
           height: TSizes.spaceBtwInputFields(context),
         ),
-        TextFormField(
-          decoration: const InputDecoration(
-              prefixIcon: Icon(
-                Iconsax.password_check,
+        Obx(
+    ()=> TextFormField(controller: controller.password,obscureText: controller.ishide.value,
+            validator:(value)=> TValidator.validatePassword(value),
+            decoration: InputDecoration(
+                prefixIcon: const Icon(
+                  Iconsax.password_check,
+                ),
+                labelText: "Password",
+              suffixIcon: InkWell(onTap: () => controller.ishide.value = !controller.ishide.value ,
+                child: Icon(
+                controller.ishide.value
+                ? Icons.visibility_off
+                          : Icons.visibility,
+                ),
               ),
-              labelText: "Password",
-              suffixIcon: Icon(Iconsax.password_check)),
+
+              ),),
         ),
         SizedBox(
           height: TSizes.spaceBtwInputFields(context),

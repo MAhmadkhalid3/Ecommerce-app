@@ -1,7 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ecommerce/common/widgets/customShapes/curves_edges.dart';
+import 'package:ecommerce/features/shop/models/product_model.dart';
 import 'package:ecommerce/features/shop/screens/product_detail/widgets.dart';
 import 'package:ecommerce/utils/helpers/helper_functions.dart';
+import 'package:ecommerce/utils/popups/shmiled_loader.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:readmore/readmore.dart';
 import '../../../../common/widgets/home_Widgets/custom_appbar.dart';
@@ -9,8 +13,68 @@ import '../../../../utils/constants/colors.dart';
 import '../../../../utils/constants/sizes.dart';
 import '../home/home.dart';
 
-class ProductDetailScreen extends StatelessWidget {
-  const ProductDetailScreen({super.key});
+class ProductDetailScreen extends StatefulWidget {
+  ProductDetailScreen({super.key, required this.product});
+  final ProductModel product;
+
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  late String selectedImage;
+  String selectedSize = '';
+  List<String> availableSizes = [];
+  ProductVariationModel? selectedVariation;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedImage = widget.product.images.first;
+    _updateVariation(selectedImage);
+  }
+
+  void _updateVariation(String imageUrl) {
+    final matched = widget.product.productVariations
+        .where((v) => v.image == imageUrl)
+        .toList();
+
+    final sizes = matched
+        .map((v) => v.attributeValues['Size']?.toString() ?? '')
+        .where((s) => s.isNotEmpty)
+        .toSet()
+        .toList();
+
+    setState(() {
+      selectedImage = imageUrl;
+      selectedSize = '';
+      availableSizes = sizes;
+      selectedVariation = matched.isNotEmpty ? matched.first : null;
+    });
+  }
+
+  void _onSizeSelected(String size) {
+    final matched = widget.product.productVariations.firstWhereOrNull(
+          (v) =>
+      v.image == selectedImage &&
+          v.attributeValues['Size']?.toString() == size,
+    );
+    setState(() {
+      selectedSize = size;
+      selectedVariation = matched;
+    });
+  }
+
+  double get currentPrice =>
+      selectedVariation != null ? selectedVariation!.price : widget.product.price;
+
+  double get currentSalePrice =>
+      selectedVariation != null ? selectedVariation!.salePrice : widget.product.salePrice;
+
+  int get currentStock =>
+      selectedVariation != null ? selectedVariation!.stock : widget.product.stock;
+
+  bool get isInStock => currentStock > 0;
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +92,23 @@ class ProductDetailScreen extends StatelessWidget {
                     height: 320,
                     width: double.infinity,
                     color: isdark ? TColors.darkGrey : TColors.light,
-                    child: Image.asset(
-                        'assets/images/products/NikeAirJOrdonBlackRed.png'),
+                    child: SizedBox(
+                      height: 100,
+                      width: 200,
+                      child: CachedNetworkImage(
+                        imageUrl: selectedImage,
+                        // ── Shimmer for main image ──
+                        placeholder: (context, url) => TShimmerEffect(
+                          width: double.infinity,
+                          height: 320,
+                          radius: 0,
+                        ),
+                        errorWidget: (context, url, error) =>
+                        const Icon(Icons.broken_image),
+                        fit: BoxFit.contain,
+                        width: double.infinity,
+                      ),
+                    ),
                   ),
                 ),
                 Positioned(
@@ -41,23 +120,28 @@ class ProductDetailScreen extends StatelessWidget {
                         shrinkWrap: true,
                         scrollDirection: Axis.horizontal,
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsetsGeometry.only(left: 24),
+                        padding: const EdgeInsets.only(left: 24),
                         itemBuilder: (BuildContext context, int index) {
                           return TRoundedImage(
+                              onPressed: () => _updateVariation(
+                                  widget.product.images[index]),
                               width: 50,
                               height: 100,
-                              border: Border.all(color: TColors.primary),
+                              isNetworkImage: true,
+                              border: Border.all(
+                                color: selectedImage ==
+                                    widget.product.images[index]
+                                    ? TColors.primary
+                                    : Colors.transparent,
+                              ),
                               backgroundColor:
-                                  isdark ? Colors.grey.shade900 : TColors.white,
-                              imageUrl:
-                                  'assets/images/products/leather_jacket_3.png');
+                              isdark ? Colors.grey.shade900 : TColors.white,
+                              imageUrl: widget.product.images[index]);
                         },
                         separatorBuilder: (_, __) {
-                          return const SizedBox(
-                            width: 10,
-                          );
+                          return const SizedBox(width: 10);
                         },
-                        itemCount: 3,
+                        itemCount: widget.product.images.length,
                       ),
                     )),
                 TAppBar(
@@ -68,10 +152,8 @@ class ProductDetailScreen extends StatelessWidget {
                         child: CircleAvatar(
                             radius: 20,
                             backgroundColor:
-                                isdark ? TColors.black : TColors.white,
-                            child: const Icon(
-                              Iconsax.heart,
-                            )))
+                            isdark ? TColors.black : TColors.white,
+                            child: const Icon(Iconsax.heart)))
                   ],
                 ),
               ]),
@@ -82,13 +164,11 @@ class ProductDetailScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // ── Rating Row ──
                       Row(
                         children: [
-                          const Icon(
-                            Iconsax.star5,
-                            color: Colors.amber,
-                            size: 24,
-                          ),
+                          const Icon(Iconsax.star5,
+                              color: Colors.amber, size: 24),
                           const SizedBox(width: 3),
                           Text.rich(TextSpan(children: [
                             TextSpan(
@@ -99,238 +179,263 @@ class ProductDetailScreen extends StatelessWidget {
                                     .apply(color: Colors.grey.shade500)),
                             TextSpan(
                                 text: " (199)",
-                                style: Theme.of(context).textTheme.labelLarge),
+                                style:
+                                Theme.of(context).textTheme.labelLarge),
                           ])),
                           const Spacer(),
-                          const Icon(
-                            Icons.share,
-                            size: 24,
-                          )
+                          const Icon(Icons.share, size: 24)
                         ],
                       ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      const PriceWithDiscountTag(),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Text(
-                        "Red Nike sport shoes",
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(
-                        height: 3.2,
-                      ),
+                      const SizedBox(height: 10),
+
+                      // ── Price Tag (dynamic) ──
                       Row(
                         children: [
-                          Text(
-                            "Stock",
-                            style: Theme.of(context).textTheme.bodyMedium,
+                          Container(
+                            width: 35,
+                            decoration: BoxDecoration(
+                                color: TColors.secondary.withOpacity(.8),
+                                borderRadius: BorderRadius.circular(5)),
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(3.0),
+                                child: Text(
+                                  currentSalePrice > 0
+                                      ? "${((1 - currentSalePrice / currentPrice) * 100).toStringAsFixed(0)}%"
+                                      : "0%",
+                                  style: Theme.of(context).textTheme.labelLarge,
+                                ),
+                              ),
+                            ),
                           ),
-                          const SizedBox(
-                            width: 10,
-                          ),
+                          const SizedBox(width: 5),
                           Text(
-                            "In Stock",
+                            "\$${currentPrice.toStringAsFixed(0)}",
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall!
+                                .apply(decoration: TextDecoration.lineThrough),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            "\$${currentSalePrice.toStringAsFixed(0)}",
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // ── Title ──
+                      Text(
+                        widget.product.title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 3.2),
+
+                      // ── Stock ──
+                      Row(
+                        children: [
+                          Text("Stock",
+                              style: Theme.of(context).textTheme.bodyMedium),
+                          const SizedBox(width: 10),
+                          Text(
+                            isInStock ? "In Stock" : "Out of Stock",
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyLarge!
-                                .apply(fontSizeDelta: 1.3),
+                                .apply(
+                                fontSizeDelta: 1.3,
+                                color: isInStock
+                                    ? Colors.green
+                                    : Colors.red),
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 5,
-                      ),
+                      const SizedBox(height: 5),
+
                       TBrandIconWithVerificationTitle(
                         isdark: isdark,
-                        text: 'Nike',
+                        text: widget.product.brand.name,
                         IconSize: 10,
                         fontSize: 12,
                       ),
                       const SizedBox(height: 10),
+
+                      // ── Variation Box (dynamic) ──
                       Container(
                         padding: EdgeInsets.all(TSizes.md(context)),
                         decoration: BoxDecoration(
                             color: isdark ? TColors.darkGrey : TColors.light,
                             borderRadius: BorderRadius.circular(12)),
-                        child: Column(
+                        child: Row(
                           children: [
-                            Row(
+                            Text("Variation",
+                                style:
+                                Theme.of(context).textTheme.titleLarge),
+                            const SizedBox(width: 10),
+                            // ── Shimmer jab variation null ho ──
+                            selectedVariation == null && availableSizes.isEmpty
+                                ? Column(
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  "Variation",
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                const SizedBox(width: 10),
-                                Column(
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text("Price:",
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall),
-                                        const SizedBox(width: 5),
-                                        Text(
-                                          "\$210",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleSmall!
-                                              .apply(
-                                                  decoration: TextDecoration
-                                                      .lineThrough,
-                                                  fontWeightDelta: 1),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Text(
-                                          "\$175",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium!
-                                              .apply(fontWeightDelta: 1),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text("Stock:",
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall),
-                                        const SizedBox(
-                                          width: 5,
-                                        ),
-                                        Text(
-                                          "Out of Stock",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleSmall!
-                                              .apply(fontWeightDelta: 1),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(width: 5),
-                                  ],
-                                ),
+                                TShimmerEffect(
+                                    width: 150, height: 14, radius: 4),
+                                const SizedBox(height: 6),
+                                TShimmerEffect(
+                                    width: 120, height: 14, radius: 4),
+                                const SizedBox(height: 6),
+                                TShimmerEffect(
+                                    width: 100, height: 14, radius: 4),
                               ],
                             )
+                                : Column(
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text("Price:",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      "\$${currentPrice.toStringAsFixed(0)}",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall!
+                                          .apply(
+                                          decoration: TextDecoration
+                                              .lineThrough,
+                                          fontWeightDelta: 1),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      "\$${currentSalePrice.toStringAsFixed(0)}",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium!
+                                          .apply(fontWeightDelta: 1),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Text("Stock:",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      isInStock
+                                          ? "In Stock ($currentStock)"
+                                          : "Out of Stock",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall!
+                                          .apply(
+                                          fontWeightDelta: 1,
+                                          color: isInStock
+                                              ? Colors.green
+                                              : Colors.red),
+                                    ),
+                                  ],
+                                ),
+                                if (selectedVariation != null)
+                                  Row(
+                                    children: [
+                                      Text("SKU:",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        selectedVariation!.sku,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleSmall!
+                                            .apply(fontWeightDelta: 1),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Colors",
-                            style: Theme.of(context).textTheme.headlineSmall,
+                      const SizedBox(height: 10),
+
+                      // ── Sizes (dynamic + shimmer) ──
+                      if (availableSizes.isEmpty && selectedVariation == null)
+                      // Loading state — shimmer chips
+                        Wrap(
+                          spacing: 8,
+                          children: List.generate(
+                            3,
+                                (i) => TShimmerEffect(
+                                width: 60, height: 35, radius: 8),
                           ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          Wrap(
-                            children: [
-                              TChoiceChip(
-                                text: "Green",
-                                onSelected: (value) {},
-                                selected: true,
-                              ),
-                              TChoiceChip(
-                                text: "Blue",
-                                onSelected: (value) {},
-                                selected: false,
-                              ),
-                              TChoiceChip(
-                                text: "Red",
-                                onSelected: (value) {},
-                                selected: false,
-                              ),
-                              TChoiceChip(
-                                text: "Pink",
-                                onSelected: (value) {},
-                                selected: false,
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Sizes",
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          Wrap(
-                            spacing: 8,
-                            children: [
-                              TChoiceChip(
-                                text: "EU 24",
-                                onSelected: (value) {},
-                                selected: true,
-                              ),
-                              TChoiceChip(
-                                text: "EU 26",
-                                onSelected: (value) {},
-                                selected: false,
-                              ),
-                              TChoiceChip(
-                                text: "EU 28",
-                                onSelected: (value) {},
-                                selected: false,
-                              ),
-                              TChoiceChip(
-                                text: "EU 32",
-                                onSelected: (value) {},
-                                selected: false,
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
+                        )
+                      else if (availableSizes.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Sizes",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 8,
+                              children: availableSizes
+                                  .map((size) => TChoiceChip(
+                                text: size,
+                                selected: selectedSize == size,
+                                onSelected: (_) =>
+                                    _onSizeSelected(size),
+                              ))
+                                  .toList(),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                        ),
+
+                      // ── Checkout Button ──
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         child: ElevatedButton(
                             onPressed: () {},
-                            child: const  Center(
-                              child: Text("Checkout"),
-                            )),
+                            child: const Center(child: Text("Checkout"))),
                       ),
-                      const Description(
-                        title: 'Discription',
-                        discription:
-                            "The discripton of this product is cripton of this product is cripton of this product is cripton of this product is cripton of this product is cripton of this product is ",
+
+                      // ── Description ──
+                      Description(
+                        title: 'Description',
+                        discription: widget.product.description,
                       ),
                       const Padding(
                         padding: EdgeInsets.symmetric(
                             vertical: 10.0, horizontal: 0),
                         child: Divider(),
                       ),
+
+                      // ── Reviews ──
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            "Reviews(199)",
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
+                          Text("Reviews(199)",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall),
                           IconButton(
                               onPressed: () {},
                               icon: const Icon(
-                                Icons.arrow_forward_ios_rounded,
-                                size: 16,
-                              ))
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 16))
                         ],
                       ),
-                      const SizedBox(
-                        height: 30,
-                      )
+                      const SizedBox(height: 30)
                     ]),
               )
             ],
@@ -349,23 +454,23 @@ class Description extends StatelessWidget {
   });
   final String title;
   final String discription;
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
+        Text(title, style: Theme.of(context).textTheme.headlineSmall),
         ReadMoreText(
           discription,
           trimLines: 2,
           trimMode: TrimMode.Line,
           trimCollapsedText: "Show more",
           trimExpandedText: "Show less",
-          moreStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-          lessStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+          moreStyle:
+          const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+          lessStyle:
+          const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
         ),
       ],
     );
@@ -396,21 +501,27 @@ class TBottomAddToCart extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: isdark ?TColors.darkerGrey : TColors.darkGrey,
-              child:const Icon(Iconsax.minus,color: Colors.white,),
+              backgroundColor:
+              isdark ? TColors.darkerGrey : TColors.darkGrey,
+              child: const Icon(Iconsax.minus, color: Colors.white),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text("3",style: Theme.of(context).textTheme.titleMedium,),
+              child: Text("3",
+                  style: Theme.of(context).textTheme.titleMedium),
             ),
             CircleAvatar(
               radius: 18,
-              backgroundColor: isdark ? TColors.darkerGrey : TColors.darkGrey,
-              child:const Icon(Iconsax.add,color: Colors.white,),
+              backgroundColor:
+              isdark ? TColors.darkerGrey : TColors.darkGrey,
+              child: const Icon(Iconsax.add, color: Colors.white),
             ),
             const Spacer(),
-            ElevatedButton(style:ElevatedButton.styleFrom(padding: const EdgeInsets.all(12)),
-                onPressed: (){}, child:const Text("Add to Cart") )
+            ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(12)),
+                onPressed: () {},
+                child: const Text("Add to Cart"))
           ],
         ),
       ),
