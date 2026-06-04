@@ -6,4 +6,4 @@ enum TextSizes { small, medium, large }
 
 enum OrderStatus { processing, shipped, delivered }
 
-enum PaymentMethods { jazzcash, creditCard, EasyPasa }
+enum PaymentMethods { cashOnDelivery, jazzcash }

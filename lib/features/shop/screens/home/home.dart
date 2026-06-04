@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecommerce/features/shop/controller/CategoryController.dart';
 import 'package:ecommerce/features/shop/controller/user-controller.dart';
 import 'package:ecommerce/features/shop/screens/Cart/cart_screen.dart';
+import 'package:ecommerce/features/shop/screens/all_product/all_product_screen.dart';
 import 'package:ecommerce/features/shop/screens/product_detail/product_detail_screen.dart';
 import 'package:ecommerce/utils/popups/shmiled_loader.dart';
 import 'package:flutter/material.dart';
@@ -14,32 +16,27 @@ import '../../../../utils/constants/colors.dart';
 import '../../../../utils/constants/sizes.dart';
 import '../../../../utils/helpers/helper_functions.dart';
 import '../../../authentication/controllers/banner_controller.dart';
+import '../../controller/cart_controller.dart';
 import '../../controller/homeController.dart';
 import '../../controller/product_controller.dart';
 import '../../models/product_model.dart';
-
+import '../shop/widgets.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    Get.put(Homecontroller());
-
+    final homeController = Get.put(Homecontroller());
     final productController = Get.find<ProductController>();
 
-    bool isdark = THelperFunction.isDrak(context);
-    double height = THelperFunction.ScreenHeight(context);
-
-    // 🔥 Load products once
-    productController.fetchProductsForCategory('shoes');
+    final isdark = THelperFunction.isDrak(context);
+    final height = THelperFunction.ScreenHeight(context);
 
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-
-            /// ================= HEADER =================
+            /// HEADER
             Stack(
               children: [
                 ClipPath(
@@ -61,11 +58,8 @@ class HomeScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-
                           SizedBox(height: height * .016),
-
                           const Greeting_Bell(),
-
                           SizedBox(height: height * .029),
 
                           TSearchContainer(
@@ -79,10 +73,7 @@ class HomeScreen extends StatelessWidget {
                           ),
 
                           SizedBox(height: height * .028),
-
-                          const Popular_txt(),
-
-                          SizedBox(height: height * .01),
+                           Popular_txt(text: 'Popular Categories',),
                         ],
                       ),
                     ),
@@ -93,28 +84,28 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
 
-            /// ================= BODY =================
+            /// BODY
             Padding(
-              padding: EdgeInsets.only(
-                left: TSizes.defaultSpace(context),
-                right: TSizes.defaultSpace(context),
+              padding: EdgeInsets.symmetric(
+                horizontal: TSizes.defaultSpace(context),
               ),
-              child: Column(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-                  ScrollBanner(),
-
+                  const ScrollBanner(),
                   const SizedBox(height: 10),
-
-                  /// ================= PRODUCT GRID =================
+                  FeaturedBrandHeading(
+                    ontab: () {Navigator.push(context, MaterialPageRoute(builder: (context) => AllProducts(title: 'Featured Products',query: FirebaseFirestore.instance.collection('Products')
+                        .where('isFeatured', isEqualTo: true)
+                        ,),));},
+                    text: 'Featured Products',
+                    fontsize: 19,
+                  ),
+                  /// FEATURED PRODUCTS
                   Obx(() {
-                    final products =
-                        productController.productsByCategory['shoes'] ?? [];
+                    final products = productController.featuredProducts;
 
                     if (products.isEmpty) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
+                      return TVerticalProductShimmer();
                     }
 
                     return GridView.builder(
@@ -129,11 +120,9 @@ class HomeScreen extends StatelessWidget {
                         mainAxisExtent: 260,
                       ),
                       itemBuilder: (context, index) {
-                        final p = products[index]; // 🔥 REAL DATA
-
                         return TProductCardVertical(
                           isdark: isdark,
-                          product: p,
+                          product: products[index],
                         );
                       },
                     );
@@ -224,13 +213,21 @@ class TProductCardVertical extends StatelessWidget {
                   const SizedBox(height: 8),
 
                   /// IMAGE
-                  Image.network(
-                    product.thumbnail,
-                    height: 110,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.image_not_supported),
-                  ),
+                  SizedBox(
+                    width: 150,
+                    height: 121,
+                    child: CachedNetworkImage(
+                      imageUrl: product.thumbnail,
+                      fit: BoxFit.contain,
+                      placeholder: (context, url) => const TShimmerEffect(
+                        width: 150,
+                        height: 150,
+                        radius: 12,
+                      ),
+                      errorWidget: (context, url, error) =>
+                      const Icon(Icons.broken_image),
+                    ),
+                  )
                 ],
               ),
             ),
@@ -284,7 +281,7 @@ class TProductCardVertical extends StatelessWidget {
                   /// ADD BUTTON
                   InkWell(
                     onTap: () {
-                      // TODO: Add to cart logic
+                      CartController.instance.addToCart(product);
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -435,10 +432,7 @@ class CRounded_Image extends StatelessWidget {
                 imageUrl: resolved,
                 fit: BoxFit.cover,
                 width: double.infinity,
-                placeholder: (context, url) => Container(
-                  color: Colors.grey.shade200,
-                  child: const Center(child: SizedBox()),
-                ),
+                placeholder: (context, url) => TShimmerEffect(width: double.maxFinite, height: double.maxFinite),
                 errorWidget: (context, url, error) => Container(
                   color: Colors.grey.shade200,
                   child: const Icon(
@@ -459,14 +453,14 @@ class CRounded_Image extends StatelessWidget {
 }
 
 class Popular_txt extends StatelessWidget {
-  const Popular_txt({
-    super.key,
+   Popular_txt({
+    super.key, required this.text,
   });
-
+final String text;
   @override
   Widget build(BuildContext context) {
     return Text(
-      "Popular Categories",
+     text,
       style: TextStyle(
           fontSize: 19,
           fontWeight: FontWeight.w500,
@@ -636,27 +630,33 @@ class CountBadgeCart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(children: [
-      SizedBox(
-        height: 50,
-        width: 40,
-        child: Icon(
-          Iconsax.shopping_bag,
-          size: 24,
-          color: color ?? Colors.white,
+    final cart = CartController.instance;
+    return Obx(() {
+      final count = cart.noOfCartItems;
+      return Stack(children: [
+        SizedBox(
+          height: 50,
+          width: 40,
+          child: Icon(
+            Iconsax.shopping_bag,
+            size: 24,
+            color: color ?? Colors.white,
+          ),
         ),
-      ),
-      const Positioned(
-          top: 0,
-          right: 0,
-          child: CircleAvatar(
-            backgroundColor: Colors.red,
-            radius: 8,
-            child: Text(
-              "2",
-              style: TextStyle(fontSize: 12, color: Colors.white),
+        if (count > 0)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: CircleAvatar(
+              backgroundColor: Colors.red,
+              radius: 8,
+              child: Text(
+                count > 99 ? '99+' : '$count',
+                style: const TextStyle(fontSize: 10, color: Colors.white),
+              ),
             ),
-          ))
-    ]);
+          ),
+      ]);
+    });
   }
 }

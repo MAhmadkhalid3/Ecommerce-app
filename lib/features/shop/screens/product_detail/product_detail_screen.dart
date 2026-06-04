@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ecommerce/common/widgets/customShapes/curves_edges.dart';
+import 'package:ecommerce/features/shop/controller/cart_controller.dart';
 import 'package:ecommerce/features/shop/models/product_model.dart';
 import 'package:ecommerce/features/shop/screens/product_detail/widgets.dart';
 import 'package:ecommerce/utils/helpers/helper_functions.dart';
@@ -81,7 +82,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     bool isdark = THelperFunction.isDrak(context);
     return SizedBox(
       child: Scaffold(
-        bottomNavigationBar: const TBottomAddToCart(),
+        bottomNavigationBar: TBottomAddToCart(
+          product: widget.product,
+          variation: selectedVariation,
+          selectedSize: selectedSize.isNotEmpty ? selectedSize : null,
+        ),
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -477,54 +482,109 @@ class Description extends StatelessWidget {
   }
 }
 
-class TBottomAddToCart extends StatelessWidget {
-  const TBottomAddToCart({super.key});
+class TBottomAddToCart extends StatefulWidget {
+  const TBottomAddToCart({
+    super.key,
+    required this.product,
+    this.variation,
+    this.selectedSize,
+  });
+
+  final ProductModel product;
+  final ProductVariationModel? variation;
+  final String? selectedSize;
+
+  @override
+  State<TBottomAddToCart> createState() => _TBottomAddToCartState();
+}
+
+class _TBottomAddToCartState extends State<TBottomAddToCart> {
+  int _pendingQty = 1;
 
   @override
   Widget build(BuildContext context) {
     final bool isdark = THelperFunction.isDrak(context);
-    return Container(
-      height: 70,
-      padding: EdgeInsets.symmetric(
-        horizontal: TSizes.defaultSpace(context),
-        vertical: TSizes.defaultSpace(context) / 2,
-      ),
-      decoration: BoxDecoration(
-        color: isdark ? TColors.darkGrey : TColors.light,
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(TSizes.cardRadiusLg(context)),
-          topLeft: Radius.circular(TSizes.cardRadiusLg(context)),
+    final cart = CartController.instance;
+
+    return Obx(() {
+      final cartItem = cart.getCartItem(
+        widget.product,
+        variation: widget.variation,
+      );
+      final displayQty = cartItem?.quantity ?? _pendingQty;
+
+      return Container(
+        height: 70,
+        padding: EdgeInsets.symmetric(
+          horizontal: TSizes.defaultSpace(context),
+          vertical: TSizes.defaultSpace(context) / 2,
         ),
-      ),
-      child: Center(
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor:
-              isdark ? TColors.darkerGrey : TColors.darkGrey,
-              child: const Icon(Iconsax.minus, color: Colors.white),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text("3",
-                  style: Theme.of(context).textTheme.titleMedium),
-            ),
-            CircleAvatar(
-              radius: 18,
-              backgroundColor:
-              isdark ? TColors.darkerGrey : TColors.darkGrey,
-              child: const Icon(Iconsax.add, color: Colors.white),
-            ),
-            const Spacer(),
-            ElevatedButton(
+        decoration: BoxDecoration(
+          color: isdark ? TColors.darkGrey : TColors.light,
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(TSizes.cardRadiusLg(context)),
+            topLeft: Radius.circular(TSizes.cardRadiusLg(context)),
+          ),
+        ),
+        child: Center(
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  if (cartItem != null) {
+                    cart.decreaseQuantity(cartItem.id);
+                  } else if (_pendingQty > 1) {
+                    setState(() => _pendingQty--);
+                  }
+                },
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor:
+                      isdark ? TColors.darkerGrey : TColors.darkGrey,
+                  child: const Icon(Iconsax.minus, color: Colors.white),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Text(
+                  '$displayQty',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  if (cartItem != null) {
+                    cart.increaseQuantity(cartItem.id);
+                  } else {
+                    setState(() => _pendingQty++);
+                  }
+                },
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor:
+                      isdark ? TColors.darkerGrey : TColors.darkGrey,
+                  child: const Icon(Iconsax.add, color: Colors.white),
+                ),
+              ),
+              const Spacer(),
+              ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(12)),
-                onPressed: () {},
-                child: const Text("Add to Cart"))
-          ],
+                  padding: const EdgeInsets.all(12),
+                ),
+                onPressed: () {
+                  cart.addToCart(
+                    widget.product,
+                    quantity: cartItem != null ? 1 : _pendingQty,
+                    variation: widget.variation,
+                    selectedSize: widget.selectedSize,
+                  );
+                },
+                child: Text(cartItem != null ? 'Add More' : 'Add to Cart'),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
