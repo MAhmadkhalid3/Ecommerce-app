@@ -31,7 +31,7 @@ class ForgetpasswordScreen extends StatelessWidget {
               height: TSizes.spaceBtwItems(context),
             ),
             Text(
-              "Don't worry somtes time people can forget too,enter your email and we will send you a password resent link.",
+              "Don't worry sometimes people can forget too,enter your email and we will send you a password resent link.",
               style: Theme.of(context).textTheme.labelMedium,
             ),
             SizedBox(height: TSizes.spaceBtwSections(context) * 2),

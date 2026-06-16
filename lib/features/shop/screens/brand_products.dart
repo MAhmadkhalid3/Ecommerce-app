@@ -1,15 +1,19 @@
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
-import '../../../../common/widgets/home_Widgets/custom_appbar.dart';
-import '../../../../common/widgets/t_sortable_product.dart';
-import '../../../../utils/constants/sizes.dart';
-import '../../controller/all_product_controller.dart';
-import '../../models/product_model.dart';
+import '../../../common/widgets/home_Widgets/custom_appbar.dart';
+import '../../../common/widgets/t_sortable_product.dart';
+import '../../../utils/constants/sizes.dart';
+import '../controller/all_product_controller.dart';
+import '../models/product_model.dart';
 
-class AllProducts extends StatelessWidget {
-  const AllProducts({super.key, required this.title, this.query, this.futureMethod});
+class BrandProducts extends StatelessWidget {
+  const BrandProducts({super.key, required this.title, this.query, this.futureMethod});
 
   final String title;
   final Query? query;
@@ -20,7 +24,7 @@ class AllProducts extends StatelessWidget {
     final controller = Get.put(AllProductsController());
 
     return Scaffold(
-      appBar: TAppBar(title: Text(title), showBackArrow: true),
+      appBar: TAppBar(title: Text("Brand"), showBackArrow: true),
 
       body: SingleChildScrollView(
         child: Padding(

@@ -12,16 +12,13 @@ class ProductRepository extends GetxController {
 
   final _db = FirebaseFirestore.instance;
 
-  Future<List<ProductModel>> getProductsByCategory({
-    required String categoryId,
-    int limit = 50,
-  })
+  Future<List<ProductModel>> getIsFeaturedProduct()
   async {
     try {
       final snapshot = await _db
           .collection('Products')
-          .where('categoryId', isEqualTo: categoryId)
-          .limit(limit)
+          .where('isFeatured', isEqualTo: true)
+          .limit(6)
           .get();
       return snapshot.docs.map(ProductModel.fromSnapshot).toList();
     } on FirebaseException catch (e) {
@@ -54,8 +51,27 @@ class ProductRepository extends GetxController {
     }
   }
 
+  /// Get Products based on the Brand
+  Future<List<ProductModel>> fetchProductsByQuery(Query query) async {
+    try {
+      final querySnapshot = await query.get();
+      print('Total docs: ${querySnapshot.docs.length}'); // ✅ kitne products mile
 
 
+
+      final List<ProductModel> products =
+      querySnapshot.docs.map((doc) => ProductModel.fromQuerySnapshot(doc)).toList();
+
+      return products;
+
+    } on FirebaseException catch (e) {
+      throw TFirebaseException(e.code).message;
+    } on PlatformException catch (e) {
+      throw TPlatformException(e.code).message;
+    } catch (e) {
+      throw 'Something went wrong. Please try again';
+    }
+  }
   Future<void> uploadProducts() async {
   try {
   for (int i = 1; i <= 20; i++) {

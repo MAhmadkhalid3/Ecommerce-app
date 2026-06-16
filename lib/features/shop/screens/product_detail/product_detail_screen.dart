@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ecommerce/common/widgets/customShapes/curves_edges.dart';
+import 'package:ecommerce/common/widgets/wishlist_heart_button.dart';
 import 'package:ecommerce/features/shop/controller/cart_controller.dart';
+import 'package:ecommerce/utils/popups/loaders.dart';
 import 'package:ecommerce/features/shop/models/product_model.dart';
 import 'package:ecommerce/features/shop/screens/product_detail/widgets.dart';
 import 'package:ecommerce/utils/helpers/helper_functions.dart';
@@ -12,6 +14,7 @@ import 'package:readmore/readmore.dart';
 import '../../../../common/widgets/home_Widgets/custom_appbar.dart';
 import '../../../../utils/constants/colors.dart';
 import '../../../../utils/constants/sizes.dart';
+import '../checkout/checkout_screen.dart';
 import '../home/home.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -28,20 +31,55 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   List<String> availableSizes = [];
   ProductVariationModel? selectedVariation;
 
+  ProductModel get product => widget.product;
+
+  bool get _showVariationBox => product.shouldShowVariationBox;
+
+  bool get _showSizesSection =>
+      product.hasSizeAttribute && availableSizes.isNotEmpty;
+
   @override
   void initState() {
     super.initState();
-    selectedImage = widget.product.images.first;
-    _updateVariation(selectedImage);
+    final images = product.displayImages;
+    selectedImage = images.isNotEmpty ? images.first : '';
+
+    if (product.shouldShowVariationBox) {
+      _updateVariation(selectedImage);
+    } else {
+      availableSizes = _sizesForSimpleProduct();
+    }
+  }
+
+  List<String> _sizesForSimpleProduct() {
+    if (!product.hasSizeAttribute) return [];
+
+    if (product.isVariableProduct && product.hasVariations) {
+      return product.productVariations
+          .map((v) =>
+              v.attributeValues['Size']?.toString() ??
+              v.attributeValues['size']?.toString() ??
+              '')
+          .where((s) => s.isNotEmpty)
+          .toSet()
+          .toList();
+    }
+
+    return product.attributeSizeValues;
   }
 
   void _updateVariation(String imageUrl) {
-    final matched = widget.product.productVariations
+    if (!product.shouldShowVariationBox) return;
+
+    final matched = product.productVariations
         .where((v) => v.image == imageUrl)
         .toList();
 
     final sizes = matched
-        .map((v) => v.attributeValues['Size']?.toString() ?? '')
+        .map((v) =>
+            v.attributeValues['Size']?.toString() ??
+            v.attributeValues['size']?.toString() ??
+            '')
         .where((s) => s.isNotEmpty)
         .toSet()
         .toList();
@@ -49,21 +87,50 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     setState(() {
       selectedImage = imageUrl;
       selectedSize = '';
-      availableSizes = sizes;
+      availableSizes = product.hasSizeAttribute ? sizes : [];
       selectedVariation = matched.isNotEmpty ? matched.first : null;
     });
   }
 
   void _onSizeSelected(String size) {
-    final matched = widget.product.productVariations.firstWhereOrNull(
-          (v) =>
-      v.image == selectedImage &&
-          v.attributeValues['Size']?.toString() == size,
-    );
-    setState(() {
-      selectedSize = size;
-      selectedVariation = matched;
-    });
+    if (product.shouldShowVariationBox) {
+      final matched = product.productVariations.firstWhereOrNull(
+        (v) =>
+            v.image == selectedImage &&
+            (v.attributeValues['Size']?.toString() ==
+                    size ||
+                v.attributeValues['size']?.toString() == size),
+      );
+      setState(() {
+        selectedSize = size;
+        selectedVariation = matched;
+      });
+      return;
+    }
+
+    setState(() => selectedSize = size);
+  }
+
+  bool _canAddToCart() {
+    if (product.shouldShowVariationBox && selectedVariation == null) {
+      TLoaders.warningSnackBar(
+        title: 'Select variation',
+        message: 'Please choose a product variation first.',
+      );
+      return false;
+    }
+
+    if (product.hasSizeAttribute &&
+        availableSizes.isNotEmpty &&
+        selectedSize.isEmpty) {
+      TLoaders.warningSnackBar(
+        title: 'Select size',
+        message: 'Please choose a size before adding to cart.',
+      );
+      return false;
+    }
+
+    return true;
   }
 
   double get currentPrice =>
@@ -86,6 +153,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           product: widget.product,
           variation: selectedVariation,
           selectedSize: selectedSize.isNotEmpty ? selectedSize : null,
+          canAddToCart: _canAddToCart,
         ),
         body: SingleChildScrollView(
           child: Column(
@@ -116,7 +184,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                   ),
                 ),
-                Positioned(
+                if (product.displayImages.length > 1)
+                  Positioned(
                     bottom: 30,
                     child: SizedBox(
                       height: 60,
@@ -127,38 +196,47 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.only(left: 24),
                         itemBuilder: (BuildContext context, int index) {
+                          final imageUrl = product.displayImages[index];
                           return TRoundedImage(
-                              onPressed: () => _updateVariation(
-                                  widget.product.images[index]),
-                              width: 50,
-                              height: 100,
-                              isNetworkImage: true,
-                              border: Border.all(
-                                color: selectedImage ==
-                                    widget.product.images[index]
-                                    ? TColors.primary
-                                    : Colors.transparent,
-                              ),
-                              backgroundColor:
-                              isdark ? Colors.grey.shade900 : TColors.white,
-                              imageUrl: widget.product.images[index]);
+                            onPressed: () {
+                              if (product.shouldShowVariationBox) {
+                                _updateVariation(imageUrl);
+                              } else {
+                                setState(() => selectedImage = imageUrl);
+                              }
+                            },
+                            width: 50,
+                            height: 100,
+                            isNetworkImage: true,
+                            border: Border.all(
+                              color: selectedImage == imageUrl
+                                  ? TColors.primary
+                                  : Colors.transparent,
+                            ),
+                            backgroundColor:
+                                isdark ? Colors.grey.shade900 : TColors.white,
+                            imageUrl: imageUrl,
+                          );
                         },
                         separatorBuilder: (_, __) {
                           return const SizedBox(width: 10);
                         },
-                        itemCount: widget.product.images.length,
+                        itemCount: product.displayImages.length,
                       ),
-                    )),
+                    ),
+                  ),
                 TAppBar(
                   showBackArrow: true,
                   actions: [
-                    InkWell(
-                        onTap: () {},
-                        child: CircleAvatar(
-                            radius: 20,
-                            backgroundColor:
-                            isdark ? TColors.black : TColors.white,
-                            child: const Icon(Iconsax.heart)))
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor:
+                          isdark ? TColors.black : TColors.white,
+                      child: WishlistHeartButton(
+                        product: product,
+                        iconSize: 20,
+                      ),
+                    ),
                   ],
                 ),
               ]),
@@ -266,140 +344,128 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       const SizedBox(height: 10),
 
-                      // ── Variation Box (dynamic) ──
-                      Container(
-                        padding: EdgeInsets.all(TSizes.md(context)),
-                        decoration: BoxDecoration(
+                      // ── Variation box: only for variable products ──
+                      if (_showVariationBox) ...[
+                        Container(
+                          padding: EdgeInsets.all(TSizes.md(context)),
+                          decoration: BoxDecoration(
                             color: isdark ? TColors.darkGrey : TColors.light,
-                            borderRadius: BorderRadius.circular(12)),
-                        child: Row(
-                          children: [
-                            Text("Variation",
-                                style:
-                                Theme.of(context).textTheme.titleLarge),
-                            const SizedBox(width: 10),
-                            // ── Shimmer jab variation null ho ──
-                            selectedVariation == null && availableSizes.isEmpty
-                                ? Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                TShimmerEffect(
-                                    width: 150, height: 14, radius: 4),
-                                const SizedBox(height: 6),
-                                TShimmerEffect(
-                                    width: 120, height: 14, radius: 4),
-                                const SizedBox(height: 6),
-                                TShimmerEffect(
-                                    width: 100, height: 14, radius: 4),
-                              ],
-                            )
-                                : Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                'Variation',
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text("Price:",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      "\$${currentPrice.toStringAsFixed(0)}",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall!
-                                          .apply(
-                                          decoration: TextDecoration
-                                              .lineThrough,
-                                          fontWeightDelta: 1),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      "\$${currentSalePrice.toStringAsFixed(0)}",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium!
-                                          .apply(fontWeightDelta: 1),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    Text("Stock:",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      isInStock
-                                          ? "In Stock ($currentStock)"
-                                          : "Out of Stock",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall!
-                                          .apply(
-                                          fontWeightDelta: 1,
-                                          color: isInStock
-                                              ? Colors.green
-                                              : Colors.red),
-                                    ),
-                                  ],
-                                ),
-                                if (selectedVariation != null)
-                                  Row(
-                                    children: [
-                                      Text("SKU:",
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Price:',
                                           style: Theme.of(context)
                                               .textTheme
-                                              .bodySmall),
-                                      const SizedBox(width: 5),
-                                      Text(
-                                        selectedVariation!.sku,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall!
-                                            .apply(fontWeightDelta: 1),
+                                              .bodySmall,
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          '\$${currentPrice.toStringAsFixed(0)}',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleSmall!
+                                              .apply(
+                                                decoration:
+                                                    TextDecoration.lineThrough,
+                                                fontWeightDelta: 1,
+                                              ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          '\$${currentSalePrice.toStringAsFixed(0)}',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium!
+                                              .apply(fontWeightDelta: 1),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Stock:',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall,
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          isInStock
+                                              ? 'In Stock ($currentStock)'
+                                              : 'Out of Stock',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleSmall!
+                                              .apply(
+                                                fontWeightDelta: 1,
+                                                color: isInStock
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (selectedVariation != null)
+                                      Row(
+                                        children: [
+                                          Text(
+                                            'SKU:',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall,
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Text(
+                                            selectedVariation!.sku,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleSmall!
+                                                .apply(fontWeightDelta: 1),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // ── Sizes (dynamic + shimmer) ──
-                      if (availableSizes.isEmpty && selectedVariation == null)
-                      // Loading state — shimmer chips
-                        Wrap(
-                          spacing: 8,
-                          children: List.generate(
-                            3,
-                                (i) => TShimmerEffect(
-                                width: 60, height: 35, radius: 8),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                        )
-                      else if (availableSizes.isNotEmpty)
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+
+                      // ── Sizes: only when product has sizes ──
+                      if (_showSizesSection)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("Sizes",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall),
+                            Text(
+                              'Sizes',
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
                             const SizedBox(height: 10),
                             Wrap(
                               spacing: 8,
                               children: availableSizes
-                                  .map((size) => TChoiceChip(
-                                text: size,
-                                selected: selectedSize == size,
-                                onSelected: (_) =>
-                                    _onSizeSelected(size),
-                              ))
+                                  .map(
+                                    (size) => TChoiceChip(
+                                      text: size,
+                                      selected: selectedSize == size,
+                                      onSelected: (_) => _onSizeSelected(size),
+                                    ),
+                                  )
                                   .toList(),
                             ),
                             const SizedBox(height: 10),
@@ -410,7 +476,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {Navigator.push(context, MaterialPageRoute(builder: (context) => CheckoutScreen(),));},
                             child: const Center(child: Text("Checkout"))),
                       ),
 
@@ -488,11 +554,13 @@ class TBottomAddToCart extends StatefulWidget {
     required this.product,
     this.variation,
     this.selectedSize,
+    this.canAddToCart,
   });
 
   final ProductModel product;
   final ProductVariationModel? variation;
   final String? selectedSize;
+  final bool Function()? canAddToCart;
 
   @override
   State<TBottomAddToCart> createState() => _TBottomAddToCartState();
@@ -572,6 +640,10 @@ class _TBottomAddToCartState extends State<TBottomAddToCart> {
                   padding: const EdgeInsets.all(12),
                 ),
                 onPressed: () {
+                  if (widget.canAddToCart != null &&
+                      !widget.canAddToCart!()) {
+                    return;
+                  }
                   cart.addToCart(
                     widget.product,
                     quantity: cartItem != null ? 1 : _pendingQty,

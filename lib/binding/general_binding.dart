@@ -7,6 +7,7 @@ import 'package:ecommerce/features/shop/controller/cart_controller.dart';
 import 'package:ecommerce/features/shop/controller/notification_settings_controller.dart';
 import 'package:ecommerce/features/shop/controller/order_controller.dart';
 import 'package:ecommerce/features/shop/controller/product_controller.dart';
+import 'package:ecommerce/features/shop/controller/wishlist_controller.dart';
 import 'package:ecommerce/utils/network/network_manager.dart';
 import 'package:get/get.dart';
 
@@ -27,5 +28,6 @@ class GeneralBinding extends Bindings {
     Get.put(NotificationSettingsController());
     Get.put(AppSettingsController());
     Get.put(BankAccountController());
+    Get.put(WishlistController());
   }
 }

@@ -16,11 +16,13 @@ import '../../../../utils/constants/colors.dart';
 import '../../../../utils/constants/sizes.dart';
 import '../../../../utils/helpers/helper_functions.dart';
 import '../../../authentication/controllers/banner_controller.dart';
+import '../../../../common/widgets/wishlist_heart_button.dart';
 import '../../controller/cart_controller.dart';
 import '../../controller/homeController.dart';
 import '../../controller/product_controller.dart';
 import '../../models/product_model.dart';
 import '../shop/widgets.dart';
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -46,7 +48,6 @@ class HomeScreen extends StatelessWidget {
                     color: TColors.primary,
                   ),
                 ),
-
                 Column(
                   children: [
                     Padding(
@@ -61,7 +62,6 @@ class HomeScreen extends StatelessWidget {
                           SizedBox(height: height * .016),
                           const Greeting_Bell(),
                           SizedBox(height: height * .029),
-
                           TSearchContainer(
                             text: "Search in store",
                             icon: Iconsax.search_normal,
@@ -71,13 +71,13 @@ class HomeScreen extends StatelessWidget {
                                 ? Colors.black.withOpacity(.78)
                                 : Colors.white,
                           ),
-
                           SizedBox(height: height * .028),
-                           Popular_txt(text: 'Popular Categories',),
+                          Popular_txt(
+                            text: 'Popular Categories',
+                          ),
                         ],
                       ),
                     ),
-
                     CircularList(height: height),
                   ],
                 ),
@@ -89,17 +89,28 @@ class HomeScreen extends StatelessWidget {
               padding: EdgeInsets.symmetric(
                 horizontal: TSizes.defaultSpace(context),
               ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const ScrollBanner(),
                   const SizedBox(height: 10),
                   FeaturedBrandHeading(
-                    ontab: () {Navigator.push(context, MaterialPageRoute(builder: (context) => AllProducts(title: 'Featured Products',query: FirebaseFirestore.instance.collection('Products')
-                        .where('isFeatured', isEqualTo: true)
-                        ,),));},
+                    ontab: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AllProducts(
+                              title: 'Featured Products',
+                              query: FirebaseFirestore.instance
+                                  .collection('Products')
+                                  .where('isFeatured', isEqualTo: true),
+                            ),
+                          ));
+                    },
                     text: 'Featured Products',
                     fontsize: 19,
                   ),
+
                   /// FEATURED PRODUCTS
                   Obx(() {
                     final products = productController.featuredProducts;
@@ -113,11 +124,11 @@ class HomeScreen extends StatelessWidget {
                       shrinkWrap: true,
                       itemCount: products.length,
                       gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         mainAxisSpacing: 10,
                         crossAxisSpacing: 10,
-                        mainAxisExtent: 260,
+                        mainAxisExtent: 268,
                       ),
                       itemBuilder: (context, index) {
                         return TProductCardVertical(
@@ -152,8 +163,8 @@ class TProductCardVertical extends StatelessWidget {
     return InkWell(
       onTap: () {
         Get.to(() => ProductDetailScreen(
-          product: product,
-        ));
+              product: product,
+            ));
       },
       child: Container(
         width: 190,
@@ -172,7 +183,6 @@ class TProductCardVertical extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-
             /// ================= IMAGE + DISCOUNT =================
             Container(
               decoration: BoxDecoration(
@@ -185,12 +195,11 @@ class TProductCardVertical extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-
                       /// DISCOUNT
                       if (product.salePrice < product.price)
                         Container(
-                          padding: const EdgeInsets.only(
-                              left: 6, right: 6, top: 4),
+                          padding:
+                              const EdgeInsets.only(left: 6, right: 6, top: 4),
                           decoration: BoxDecoration(
                             color: Colors.amber,
                             borderRadius: BorderRadius.circular(8),
@@ -206,7 +215,7 @@ class TProductCardVertical extends StatelessWidget {
                       else
                         const SizedBox(),
 
-                      const Icon(Icons.favorite, color: Colors.red),
+                      WishlistHeartButton(product: product),
                     ],
                   ),
 
@@ -225,7 +234,7 @@ class TProductCardVertical extends StatelessWidget {
                         radius: 12,
                       ),
                       errorWidget: (context, url, error) =>
-                      const Icon(Icons.broken_image),
+                          const Icon(Icons.broken_image),
                     ),
                   )
                 ],
@@ -236,7 +245,8 @@ class TProductCardVertical extends StatelessWidget {
 
             /// ================= TITLE =================
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 0),
               child: Text(
                 product.title,
                 overflow: TextOverflow.ellipsis,
@@ -265,7 +275,6 @@ class TProductCardVertical extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-
                   /// PRICE
                   Text(
                     product.salePrice < product.price
@@ -348,15 +357,21 @@ class ScrollBanner extends StatelessWidget {
     return Obx(() {
       // --- Loading State
       if (controller.isLoading.value) {
-        return TShimmerEffect(height: height *0.19,width: width*0.82,);
+        return TShimmerEffect(
+          height: height * 0.19,
+          width: width * 0.82,
+        );
       }
 
       // --- Empty State
       if (controller.banners.isEmpty) {
-        return  SizedBox(
+        return SizedBox(
           height: 200,
           child: Center(
-            child: Text('No banners available',style: Theme.of(context).textTheme.headlineMedium,),
+            child: Text(
+              'No banners available',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
           ),
         );
       }
@@ -367,24 +382,25 @@ class ScrollBanner extends StatelessWidget {
           CarouselSlider(
             items: controller.banners
                 .map((banner) => CRounded_Image(
-              imageUrl: banner.imageUrl, // ✅ Network URL
-            ))
+                      imageUrl: banner.imageUrl, // ✅ Network URL
+                    ))
                 .toList(),
             options: CarouselOptions(
               viewportFraction: 1,
               onPageChanged: (index, _) {
-                controller.updatePageIndicator(index); // ✅ BannerController ka method
+                controller
+                    .updatePageIndicator(index); // ✅ BannerController ka method
               },
             ),
           ),
 
           // --- Page Indicator Dots
           Obx(
-                () => Row(
+            () => Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 controller.banners.length,
-                    (i) => Padding(
+                (i) => Padding(
                   padding: const EdgeInsets.all(8),
                   child: Container(
                     height: 5,
@@ -406,23 +422,22 @@ class ScrollBanner extends StatelessWidget {
   }
 }
 
-
-
 class CRounded_Image extends StatelessWidget {
   const CRounded_Image({
     super.key,
     this.imagePath,
     this.imageUrl,
   }) : assert(imagePath != null || imageUrl != null,
-  'imagePath ya imageUrl mein se ek zaroori hai');
+            'imagePath ya imageUrl mein se ek zaroori hai');
 
-  final String? imagePath;  // Local asset
-  final String? imageUrl;   // Network image
+  final String? imagePath; // Local asset
+  final String? imageUrl; // Network image
 
   @override
   Widget build(BuildContext context) {
     final resolved = imageUrl ?? imagePath ?? '';
-    final isNetwork = resolved.startsWith('http://') || resolved.startsWith('https://');
+    final isNetwork =
+        resolved.startsWith('http://') || resolved.startsWith('https://');
     return Padding(
       padding: EdgeInsets.all(TSizes.defaultSpace(context) / 2.8),
       child: ClipRRect(
@@ -432,7 +447,8 @@ class CRounded_Image extends StatelessWidget {
                 imageUrl: resolved,
                 fit: BoxFit.cover,
                 width: double.infinity,
-                placeholder: (context, url) => TShimmerEffect(width: double.maxFinite, height: double.maxFinite),
+                placeholder: (context, url) => TShimmerEffect(
+                    width: double.maxFinite, height: double.maxFinite),
                 errorWidget: (context, url, error) => Container(
                   color: Colors.grey.shade200,
                   child: const Icon(
@@ -453,14 +469,15 @@ class CRounded_Image extends StatelessWidget {
 }
 
 class Popular_txt extends StatelessWidget {
-   Popular_txt({
-    super.key, required this.text,
+  Popular_txt({
+    super.key,
+    required this.text,
   });
-final String text;
+  final String text;
   @override
   Widget build(BuildContext context) {
     return Text(
-     text,
+      text,
       style: TextStyle(
           fontSize: 19,
           fontWeight: FontWeight.w500,
@@ -469,6 +486,7 @@ final String text;
     );
   }
 }
+
 class CircularList extends StatelessWidget {
   const CircularList({super.key, required this.height});
   final double height;
@@ -493,10 +511,17 @@ class CircularList extends StatelessWidget {
               padding: const EdgeInsets.only(right: 12),
               child: Column(
                 children: [
-                  Container(width: height * .079, height: height * .079,decoration: BoxDecoration(shape: BoxShape.circle,),
-                      child: ClipOval(child: TShimmerEffect(width: height * .079, height: height * .079))),
+                  Container(
+                      width: height * .079,
+                      height: height * .079,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                      ),
+                      child: ClipOval(
+                          child: TShimmerEffect(
+                              width: height * .079, height: height * .079))),
                   SizedBox(height: TSizes.spaceBtwItems(context) / 2),
-                  TShimmerEffect(width: height * .08, height: height*.017),
+                  TShimmerEffect(width: height * .08, height: height * .017),
                 ],
               ),
             ),
@@ -511,27 +536,30 @@ class CircularList extends StatelessWidget {
           itemBuilder: (_, index) {
             final category = controller.featuredCategories[index];
             final img = category.image;
-            final isNetwork = img.startsWith('http://') || img.startsWith('https://');
+            final isNetwork =
+                img.startsWith('http://') || img.startsWith('https://');
             return Column(
               children: [
                 Container(
                   width: height * .079,
                   height: height * .079,
                   margin: const EdgeInsets.only(right: 12),
-                  padding:  EdgeInsets.all(height*.02),
+                  padding: EdgeInsets.all(height * .02),
                   decoration: BoxDecoration(
                     color: isDark ? Colors.black87 : Colors.white,
                     borderRadius: BorderRadius.circular(200),
                   ),
                   // ✅ Real image from Firestore
-                  child: SizedBox(  width: height * .024,
+                  child: SizedBox(
+                    width: height * .024,
                     height: height * .024,
                     child: isNetwork
                         ? CachedNetworkImage(
                             color: isDark ? Colors.white : Colors.black87,
                             imageUrl: img,
                             fit: BoxFit.contain,
-                            placeholder: (context, url) => const Center(child: SizedBox()),
+                            placeholder: (context, url) =>
+                                const Center(child: SizedBox()),
                             errorWidget: (context, url, error) => Text(
                               "NO Categories Fatched ",
                               style: Theme.of(context).textTheme.headlineSmall,
@@ -548,12 +576,11 @@ class CircularList extends StatelessWidget {
                 SizedBox(
                   width: height * .09,
                   child: Center(
-                    child: Text(
-                      category.name, // ✅ Real name
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                      style: Theme.of(context).textTheme.bodyMedium?.apply( color: isDark ? Colors.black87 : Colors.white)
-                    ),
+                    child: Text(category.name, // ✅ Real name
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: Theme.of(context).textTheme.bodyMedium?.apply(
+                            color: isDark ? Colors.black87 : Colors.white)),
                   ),
                 ),
               ],
@@ -564,6 +591,7 @@ class CircularList extends StatelessWidget {
     );
   }
 }
+
 class Greeting_Bell extends StatelessWidget {
   const Greeting_Bell({
     super.key,

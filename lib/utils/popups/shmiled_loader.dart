@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../constants/colors.dart';
+import '../constants/sizes.dart';
 import '../helpers/helper_functions.dart';
 
 class TShimmerEffect extends StatelessWidget {
@@ -28,6 +29,46 @@ class TShimmerEffect extends StatelessWidget {
         decoration: BoxDecoration(
           color: color ?? (dark ? TColors.darkerGrey : TColors.white),
           borderRadius: BorderRadius.circular(radius),
+        ),
+      ),
+    );
+  }
+}
+class TVerticalProductShimmer extends StatelessWidget {
+  const TVerticalProductShimmer({
+    super.key,
+    this.itemCount = 4,
+  });
+
+  final int itemCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: itemCount,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        mainAxisExtent: 260,
+      ),
+      itemBuilder: (_, __) =>  SizedBox(
+        width: 180,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            /// Image
+            TShimmerEffect(width: 180, height: 180),
+            SizedBox(height: TSizes.spaceBtwItems(context)),
+
+            /// Text
+            TShimmerEffect(width: 160, height: 15),
+            SizedBox(height: TSizes.spaceBtwItems(context) / 2),
+            TShimmerEffect(width: 110, height: 15),
+          ],
         ),
       ),
     );

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class ProductModel {
   final String id;
   final String title;
@@ -48,6 +47,46 @@ class ProductModel {
     required this.productAttributes,
     required this.productVariations,
   });
+
+  /// Variable product with variation rows in Firestore.
+  bool get isVariableProduct =>
+      productType.toLowerCase() == 'variable';
+
+  bool get hasVariations => productVariations.isNotEmpty;
+
+  /// Show variation price/stock box only for variable products with variations.
+  bool get shouldShowVariationBox => isVariableProduct && hasVariations;
+
+  /// Product has a Size attribute or size values inside variations.
+  bool get hasSizeAttribute {
+    final fromAttributes = productAttributes.any(
+      (attr) =>
+          attr.name.toLowerCase() == 'size' &&
+          attr.values.any((v) => v.trim().isNotEmpty),
+    );
+    if (fromAttributes) return true;
+
+    return productVariations.any((variation) {
+      final size = variation.attributeValues['Size'] ??
+          variation.attributeValues['size'];
+      return size != null && size.toString().trim().isNotEmpty;
+    });
+  }
+
+  List<String> get attributeSizeValues {
+    for (final attr in productAttributes) {
+      if (attr.name.toLowerCase() == 'size') {
+        return attr.values.where((v) => v.trim().isNotEmpty).toList();
+      }
+    }
+    return [];
+  }
+
+  List<String> get displayImages {
+    if (images.isNotEmpty) return images;
+    if (thumbnail.isNotEmpty) return [thumbnail];
+    return [];
+  }
 
   /// Empty Product
   factory ProductModel.empty() {
@@ -103,50 +142,69 @@ class ProductModel {
 
     return ProductModel(
       id: document.id,
-
       title: data['title'] ?? '',
-
       description: data['description'] ?? '',
-
       categoryId: data['categoryId'] ?? '',
-
       brand: data['brand'] != null
           ? BrandModel.fromJson(data['brand'])
           : BrandModel.empty(),
-
       thumbnail: data['thumbnail'] ?? '',
-
       images: data['images'] != null
           ? List<String>.from(data['images'])
           : [],
-
       productType: data['productType'] ?? '',
-
       price: (data['price'] ?? 0).toDouble(),
-
       salePrice: (data['salePrice'] ?? 0).toDouble(),
-
       stock: data['stock'] ?? 0,
-
       sku: data['sku'] ?? '',
-
       isFeatured: data['isFeatured'] ?? false,
-
       createdAt: data['createdAt'],
-
       productAttributes: data['productAttributes'] != null
           ? (data['productAttributes'] as List)
-          .map((e) =>
-          ProductAttributeModel.fromJson(e))
+          .map((e) => ProductAttributeModel.fromJson(e))
           .toList()
           : [],
-
       productVariations: data['productVariations'] != null
           ? (data['productVariations'] as List)
-          .map((e) =>
-          ProductVariationModel.fromJson(e))
+          .map((e) => ProductVariationModel.fromJson(e))
           .toList()
           : [],
+    );
+  }
+
+  /// Map Json-oriented document snapshot from Firebase to Model
+  factory ProductModel.fromQuerySnapshot(QueryDocumentSnapshot<Object?> document) {
+    final data = document.data() as Map<String, dynamic>;
+
+    return ProductModel(
+      id: document.id,
+      sku: data['sku'] ?? '',
+      title: data['title'] ?? '',
+      stock: data['stock'] ?? 0,
+      isFeatured: data['isFeatured'] ?? false,
+      price: double.parse((data['price'] ?? 0.0).toString()),
+      salePrice: double.parse((data['salePrice'] ?? 0.0).toString()),
+      thumbnail: data['thumbnail'] ?? '',
+      categoryId: data['categoryId'] ?? '',
+      description: data['description'] ?? '',
+      productType: data['productType'] ?? '',
+      brand: data['brand'] != null
+          ? BrandModel.fromJson(data['brand'])
+          : BrandModel.empty(),
+      images: data['images'] != null
+          ? List<String>.from(data['images'])
+          : [],
+      productAttributes: data['productAttributes'] != null
+          ? (data['productAttributes'] as List)
+          .map((e) => ProductAttributeModel.fromJson(e))
+          .toList()
+          : [],
+      productVariations: data['productVariations'] != null
+          ? (data['productVariations'] as List)
+          .map((e) => ProductVariationModel.fromJson(e))
+          .toList()
+          : [],
+      createdAt: data['createdAt'],
     );
   }
 }
@@ -277,4 +335,3 @@ class ProductVariationModel {
     };
   }
 }
-

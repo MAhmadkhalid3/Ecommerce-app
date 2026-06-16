@@ -18,8 +18,8 @@ class BottomNavigatorBar extends StatelessWidget {
       bottomNavigationBar: Obx(
         () => NavigationBar(
           selectedIndex: controller.selectedIndex.value,
-          onDestinationSelected: (valu) {
-            controller.selectedIndex.value = valu;
+          onDestinationSelected: (value) {
+            controller.selectedIndex.value = value;
           },
           destinations: const [
             NavigationDestination(icon: Icon(Iconsax.home), label: "Home"),
